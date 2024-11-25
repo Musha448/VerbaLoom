@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Recognition</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .main {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 43px) !important;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+            background: linear-gradient(135deg, #dd8184, #eabaac, #e09dcd);
+            background-size: 400% 400%;
+            animation: gradientBG 8s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+            margin: 0px;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #36d1dc, #5b86e5);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s ease;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+            background: linear-gradient(45deg, #5b86e5, #36d1dc);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .clear-button {
+            background: linear-gradient(45deg, #ff4d4f, #ff7875);
+        }
+
+        .clear-button:hover {
+            background: linear-gradient(45deg, #ff7875, #ff4d4f);
+        }
+
+        textarea {
+            width: 90%;
+            max-width: 600px;
+            height: 150px;
+            border: none;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 16px;
+            font-family: 'Roboto', sans-serif;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            resize: none;
+            background: #fff7e6;
+            color: #333;
+            margin-top: 20px;
+        }
+
+        textarea::placeholder {
+            color: #888;
+        }
+
+        textarea:focus {
+            outline: none;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            border: 3px solid #36d1dc;
+        }
+
+        .speaking-icon {
+            font-size: 2rem;
+            color: rgb(0, 0, 0);
+            display: none;
+            margin-top: 0px;
+            animation: pulse 1.5s infinite;
+            background: rgb(255, 255, 255);
+            padding: 20px 28px;
+            border-radius: 50%;
+            margin-top: 20px;
+        }
+
+        .footer {
+            background-color: #e15a87;
+            color: #ffffff;
+            width: 100%;
+            padding: 10px 0px;
+        }
+
+        .footer h6 {
+            font-size: 20px;
+            font-style: italic;
+            margin: 0px !important;
+            text-align: center;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 600px) {
+            button {
+                font-size: 16px;
+                padding: 12px 25px;
+            }
+
+            textarea {
+                font-size: 14px;
+                height: 120px;
+            }
+
+            .speaking-icon {
+                font-size: 2rem;
+            }
+        }
+
+        @media(max-width: 500px){
+            .button-container {
+                display: flex;
+                gap: 15px;
+                flex-direction: column;
+                margin-top: 30px;
+                width: 90%;
+                margin: 0px auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <h1>Speak & Convert</h1>
+        <i id="speaking-icon" class="fas fa-microphone speaking-icon"></i>
+        <textarea id="text" placeholder="Your speech will appear here..."></textarea>
+        <div class="button-container">
+            <button onclick="speak()"><i class="fas fa-play"></i>&nbsp;&nbsp;Start Speaking</button>
+            <button class="clear-button" onclick="clearText()"><i class="fas fa-eraser"></i> Clear</button>
+            <button onclick="listen()" id="listen"><i class="fa-solid fa-microphone"></i> Listen</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        <h6>Created by Mushayed</h6>
+    </div>
+
+    <script>
+        const speakingIcon = document.getElementById('speaking-icon'); 
+        const text = document.getElementById('text'); // This gets the textarea element
+        const listenButton = document.getElementById('listen'); 
+
+        // Check if webkitSpeechRecognition is available
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('Speech Recognition is not supported in your browser.');
+        }
+
+        function listen() {
+            const speak = new SpeechSynthesisUtterance(text.value); // Get value of the textarea
+            speak.lang = 'hi-IN'; // Change to any language you prefer
+            window.speechSynthesis.speak(speak);
+        }
+
+        function speak() {
+            const recognition = new SpeechRecognition(); 
+            recognition.lang = "en-GB"; // You can change to other language codes
+
+            // Show the speaking icon when recognition starts
+            recognition.onstart = function () {
+                speakingIcon.style.display = 'block';
+            };
+
+            // Hide the speaking icon when recognition ends
+            recognition.onend = function () {
+                speakingIcon.style.display = 'none';
+            };
+
+            recognition.onresult = function (event) {
+                text.value = event.results[0][0].transcript;  // Put result into textarea
+            };
+
+            recognition.start(); 
+        }
+
+        // Clear the content of the textarea
+        function clearText() {
+            text.value = '';
+        }
+    </script>
+</body>
+</html>
